@@ -30,6 +30,14 @@
 #define dev_base_address (usbd_dev->driver->base_address)
 #define REBASE(x)        MMIO32((x) + (dev_base_address))
 
+#define IS_ISO_OUT(addr) ((REBASE(OTG_DOEPCTL(addr))&OTG_DOEPCTLX_EPTYPE_MASK)\
+		== OTG_DOEOCTLX_EPTYPE_ISOC)
+#define IS_ISO_IN(addr) ((REBASE(OTG_DIEPCTL(addr))&OTG_DIEPCTLX_EPTYPE_MASK)\
+		== OTG_DIEOCTLX_EPTYPE_ISOC)
+
+/* Odd/Even frame. See OTG_HS_DSTS 8..21: FNSOF Frame Number */
+#define DSTS_FNSOF_ODD_MASK	(1 << 8)
+
 void dwc_set_address(usbd_device *usbd_dev, uint8_t addr)
 {
 	REBASE(OTG_DCFG) = (REBASE(OTG_DCFG) & ~OTG_DCFG_DAD) | (addr << 4);
@@ -207,6 +215,17 @@ uint16_t dwc_ep_write_packet(usbd_device *usbd_dev, uint8_t addr,
 		return 0;
 	}
 
+	if (IS_ISO_IN(addr)) {
+		/* Isochronous support: update odd/even frame bits */
+		REBASE(OTG_DIEPCTL(addr)) &= ~OTG_DIEPCTLX_FRAME_MASK;
+
+		if ((REBASE(OTG_DSTS) & DSTS_FNSOF_ODD_MASK) == 0) {
+			REBASE(OTG_DIEPCTL(addr)) |= OTG_DIEPCTLX_SEVNFRM;
+		} else {
+			REBASE(OTG_DIEPCTL(addr)) |= OTG_DIEPCTLX_SODDFRM;
+		}
+	}
+
 	/* Enable endpoint for transmission. */
 	REBASE(OTG_DIEPTSIZ(addr)) = OTG_DIEPSIZ0_PKTCNT | len;
 	REBASE(OTG_DIEPCTL(addr)) |= OTG_DIEPCTL0_EPENA |
@@ -292,6 +311,16 @@ uint16_t dwc_ep_read_packet(usbd_device *usbd_dev, uint8_t addr,
 			usbd_dev->rxbcnt -= 4;
 		}
 		memcpy(buf32, &extra, i);
+	}
+
+	if (IS_ISO_OUT(addr)) {
+		/* Isochronous support: update odd/even frame bits */
+		REBASE(OTG_DOEPCTL(addr)) &= ~OTG_DOEPCTLX_FRAME_MASK;
+		if (REBASE(OTG_DSTS) & DSTS_FNSOF_ODD_MASK) {
+			REBASE(OTG_DOEPCTL(addr)) |= OTG_DOEPCTLX_SEVNFRM;
+		} else {
+			REBASE(OTG_DOEPCTL(addr)) |= OTG_DOEPCTLX_SODDFRM;
+		}
 	}
 
 	return len;
