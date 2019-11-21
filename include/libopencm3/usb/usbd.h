@@ -105,7 +105,7 @@ extern const usbd_driver lm4f_usb_driver;
  * while the second @e const refers to the array.
  */
 extern usbd_device *usbd_init(const usbd_driver *driver, const struct usb_device_descriptor *dev,
-	const struct usb_config_descriptor *conf, const char *const *strings, int num_strings, uint8_t *control_buffer,
+	const struct usb_config_descriptor **conf, const char *const *strings, int num_strings, uint8_t *control_buffer,
 	uint16_t control_buffer_size);
 
 /** Registers a reset callback */
