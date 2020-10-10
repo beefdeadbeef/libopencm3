@@ -102,6 +102,8 @@
 #define OTG_GOTGCTL_HSHNPEN		(1U << 10U)
 #define OTG_GOTGCTL_HNPRQ		(1U << 9U)
 #define OTG_GOTGCTL_HNGSCS		(1U << 8U)
+#define OTG_GOTGCTL_BVALOVAL		(1U << 7U)
+#define OTG_GOTGCTL_BVALOEN		(1U << 6U)
 #define OTG_GOTGCTL_SRQ			(1U << 1U)
 #define OTG_GOTGCTL_SRQSCS		(1U << 0U)
 
