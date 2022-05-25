@@ -33,7 +33,7 @@
 #include "usb_dwc_common.h"
 
 /* Receive FIFO size in 32-bit words. */
-#define RX_FIFO_SIZE 128
+#define RX_FIFO_SIZE 192
 
 static usbd_device *stm32f107_usbd_init(void);
 
