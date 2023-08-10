@@ -254,6 +254,22 @@ struct usb_audio_format_type1_descriptor_1freq {
 	struct usb_audio_format_discrete_sampling_frequency freqs[1];
 } __attribute__((packed));
 
+/*
+ * Table 3-1: Status Word Format
+ *
+ * Data format for optional Status Interrupt Endpoint
+ */
+struct usb_audio_interrupt_status_word {
+	uint8_t bStatusType; /* [7] Interrupt pending
+			      * [6] Memory Contents Changed
+			      * [5:4]  reserved
+			      * [3:0] 0 AudioControl interface
+			      *       1 AudioStreaming interface
+			      *       2 AudioStreaming endpoint
+			      */
+	uint8_t bOriginator; /* originator id */
+} __attribute__((packed));
+
 #endif
 
 /**@}*/
