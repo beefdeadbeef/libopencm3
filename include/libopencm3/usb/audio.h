@@ -118,6 +118,31 @@ struct usb_audio_output_terminal_descriptor {
 	uint8_t iTerminal;
 } __attribute__((packed));
 
+/*
+ * Table 4-6: Selector Unit Descriptor
+ */
+struct usb_audio_selector_unit_descriptor_head {
+	uint8_t bLength;
+	uint8_t bDescriptorType;
+	uint8_t bDescriptorSubtype;
+	uint8_t bUnitID;
+	uint8_t bNrInPins;
+} __attribute__((packed));
+
+struct usb_audio_selector_unit_descriptor_body {
+	uint8_t baSourceID;
+} __attribute__((packed));
+
+struct usb_audio_selector_unit_descriptor_tail {
+	uint8_t iSelector;
+} __attribute__((packed));
+
+struct usb_audio_selector_unit_descriptor_2ch {
+	struct usb_audio_selector_unit_descriptor_head head;
+	struct usb_audio_selector_unit_descriptor_body inputs[2];
+	struct usb_audio_selector_unit_descriptor_tail tail;
+}__attribute__((packed));
+
 /* Table 4-7: Feature Unit Descriptor (head) */
 struct usb_audio_feature_unit_descriptor_head {
 	uint8_t bLength;
