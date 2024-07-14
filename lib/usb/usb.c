@@ -91,7 +91,7 @@ void usbd_register_resume_callback(usbd_device *usbd_dev,
 	usbd_dev->user_callback_resume = callback;
 }
 
-void usbd_register_sof_callback(usbd_device *usbd_dev, void (*callback)(void))
+void usbd_register_sof_callback(usbd_device *usbd_dev, usbd_sof_callback callback)
 {
 	usbd_dev->user_callback_sof = callback;
 }

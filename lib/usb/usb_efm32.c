@@ -393,7 +393,7 @@ static void efm32lg_poll(usbd_device *usbd_dev)
 
 	if (intsts & USB_GINTSTS_SOF) {
 		if (usbd_dev->user_callback_sof) {
-			usbd_dev->user_callback_sof();
+			usbd_dev->user_callback_sof(usbd_dev);
 		}
 		USB_GINTSTS = USB_GINTSTS_SOF;
 	}

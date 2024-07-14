@@ -111,9 +111,12 @@ extern void usbd_register_suspend_callback(usbd_device *usbd_dev,
 /** Registers a resume callback */
 extern void usbd_register_resume_callback(usbd_device *usbd_dev,
 					  void (*callback)(void));
+
+typedef void (*usbd_sof_callback)(usbd_device *usbd_dev);
+
 /** Registers a SOF callback */
 extern void usbd_register_sof_callback(usbd_device *usbd_dev,
-				       void (*callback)(void));
+				       usbd_sof_callback callback);
 
 typedef void (*usbd_control_complete_callback)(usbd_device *usbd_dev,
 		struct usb_setup_data *req);

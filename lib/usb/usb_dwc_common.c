@@ -458,7 +458,7 @@ void dwc_poll(usbd_device *usbd_dev)
 
 	if (intsts & OTG_GINTSTS_SOF) {
 		if (usbd_dev->user_callback_sof) {
-			usbd_dev->user_callback_sof();
+			usbd_dev->user_callback_sof(usbd_dev);
 		}
 		REBASE(OTG_GINTSTS) = OTG_GINTSTS_SOF;
 	}
