@@ -121,6 +121,12 @@ SECTIONS
 		__exidx_end = .;
 	} >rom
 
+#if defined(_ROM1)
+	.rom1.text : {
+		*(.rom1.*)
+		. = ALIGN(4);
+	} >rom1
+#endif
 	. = ALIGN(4);
 	_etext = .;
 
