@@ -78,9 +78,17 @@ SECTIONS
 {
 	.text : {
 		*(.vectors)	/* Vector table */
+#if defined(_ROM1) && defined(ROM1_TEXT)
+		*(EXCLUDE_FILE(ROM1_TEXT) .text*)
+#else
 		*(.text*)	/* Program code */
+#endif
 		. = ALIGN(4);
+#if defined(_ROM1) && defined(ROM1_DATA)
+		*(EXCLUDE_FILE(ROM1_DATA) .rodata*)
+#else
 		*(.rodata*)	/* Read-only data */
+#endif
 		. = ALIGN(4);
 	} >rom
 
@@ -123,6 +131,29 @@ SECTIONS
 
 	. = ALIGN(4);
 	_etext = .;
+
+#if defined(_ROM1)
+	.rom1 : {
+		_rom1 = .;
+
+#if defined(ROM1_TEXT)
+		ROM1_TEXT*(.text .text.*)
+		. = ALIGN(4);
+#endif
+
+#if defined(ROM1_DATA)
+		ROM1_DATA*(.rodata .rodata.*)
+		. = ALIGN(4);
+#endif
+
+		*(.rom1*)
+		. = ALIGN(4);
+
+	} >rom1
+
+	. = ALIGN(4);
+	_erom1 = .;
+#endif
 
 	/* ram, but not cleared on reset, eg boot/app comms */
 	.noinit (NOLOAD) : {
