@@ -118,6 +118,31 @@ struct usb_audio_output_terminal_descriptor {
 	uint8_t iTerminal;
 } __attribute__((packed));
 
+/*
+ * Table 4-6: Selector Unit Descriptor
+ */
+struct usb_audio_selector_unit_descriptor_head {
+	uint8_t bLength;
+	uint8_t bDescriptorType;
+	uint8_t bDescriptorSubtype;
+	uint8_t bUnitID;
+	uint8_t bNrInPins;
+} __attribute__((packed));
+
+struct usb_audio_selector_unit_descriptor_body {
+	uint8_t baSourceID;
+} __attribute__((packed));
+
+struct usb_audio_selector_unit_descriptor_tail {
+	uint8_t iSelector;
+} __attribute__((packed));
+
+struct usb_audio_selector_unit_descriptor_2ch {
+	struct usb_audio_selector_unit_descriptor_head head;
+	struct usb_audio_selector_unit_descriptor_body inputs[2];
+	struct usb_audio_selector_unit_descriptor_tail tail;
+}__attribute__((packed));
+
 /* Table 4-7: Feature Unit Descriptor (head) */
 struct usb_audio_feature_unit_descriptor_head {
 	uint8_t bLength;
@@ -227,6 +252,22 @@ struct usb_audio_format_discrete_sampling_frequency {
 struct usb_audio_format_type1_descriptor_1freq {
 	struct usb_audio_format_type1_descriptor_head head;
 	struct usb_audio_format_discrete_sampling_frequency freqs[1];
+} __attribute__((packed));
+
+/*
+ * Table 3-1: Status Word Format
+ *
+ * Data format for optional Status Interrupt Endpoint
+ */
+struct usb_audio_interrupt_status_word {
+	uint8_t bStatusType; /* [7] Interrupt pending
+			      * [6] Memory Contents Changed
+			      * [5:4]  reserved
+			      * [3:0] 0 AudioControl interface
+			      *       1 AudioStreaming interface
+			      *       2 AudioStreaming endpoint
+			      */
+	uint8_t bOriginator; /* originator id */
 } __attribute__((packed));
 
 #endif

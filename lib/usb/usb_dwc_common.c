@@ -32,6 +32,9 @@
 #define dev_base_address (usbd_dev->driver->base_address)
 #define REBASE(x)        MMIO32((x) + (dev_base_address))
 
+/* Odd/Even frame. See OTG_HS_DSTS 8..21: FNSOF Frame Number */
+#define DSTS_FNSOF_ODD_MASK	(1 << 8)
+
 static void dwc_flush_txfifo(usbd_device *usbd_dev, uint8_t ep);
 
 void dwc_set_address(usbd_device *const usbd_dev, const uint8_t address)
@@ -242,6 +245,16 @@ uint16_t dwc_ep_write_packet(
 		REBASE(OTG_DIEPINT(ep)) = OTG_DIEPINTX_EPDISD;
 	}
 
+	/* Isochronous support: update odd/even frame bits */
+	if ((REBASE(OTG_DIEPCTL(ep))&OTG_DIEPCTLX_EPTYP_MASK) == OTG_DIEPCTLX_EPTYP_ISOC) {
+		REBASE(OTG_DIEPCTL(ep)) &= ~OTG_DIEPCTLX_FRAME_MASK;
+		if ((REBASE(OTG_DSTS) & DSTS_FNSOF_ODD_MASK) == 0) {
+			REBASE(OTG_DIEPCTL(ep)) |= OTG_DIEPCTLX_SEVNFRM;
+		} else {
+			REBASE(OTG_DIEPCTL(ep)) |= OTG_DIEPCTLX_SODDFRM;
+		}
+	}
+
 	/* Configure the endpoint to accept the new packet */
 	if (ep == 0U)
 		REBASE(OTG_DIEPTSIZ0) = OTG_DIEPSIZ0_PKTCNT | (length & OTG_DIEPSIZ0_XFRSIZ_MASK);
@@ -285,8 +298,6 @@ uint16_t dwc_ep_write_packet(
 uint16_t dwc_ep_read_packet(
 	usbd_device *const usbd_dev, const uint8_t endpoint_address, void *const buffer, const uint16_t length)
 {
-	/* We do not need to know the endpoint address since there is only one receive FIFO for all endpoints. */
-	(void)endpoint_address;
 	/* Figure out how many bytes to read, and how many can be read as u32 chunks */
 	const size_t count = MIN(length, usbd_dev->rxbcnt);
 	const size_t aligned_count = count & ~3U;
@@ -323,6 +334,17 @@ uint16_t dwc_ep_read_packet(
 	} else
 		/* All's said and done, so drop the read count by the amount read and return */
 		usbd_dev->rxbcnt -= count;
+
+	if ((REBASE(OTG_DOEPCTL(endpoint_address))&OTG_DOEPCTLX_EPTYP_MASK) == OTG_DOEPCTLX_EPTYP_ISOC) {
+		/* Isochronous support: update odd/even frame bits */
+		REBASE(OTG_DOEPCTL(endpoint_address)) &= ~OTG_DOEPCTLX_FRAME_MASK;
+		if (REBASE(OTG_DSTS) & DSTS_FNSOF_ODD_MASK) {
+			REBASE(OTG_DOEPCTL(endpoint_address)) |= OTG_DOEPCTLX_SEVNFRM;
+		} else {
+			REBASE(OTG_DOEPCTL(endpoint_address)) |= OTG_DOEPCTLX_SODDFRM;
+		}
+	}
+
 	return count;
 }
 
@@ -470,7 +492,7 @@ void dwc_poll(usbd_device *const usbd_dev)
 	/* Handle SOF notifications */
 	if (status & OTG_GINTSTS_SOF) {
 		if (usbd_dev->user_callback_sof) {
-			usbd_dev->user_callback_sof();
+			usbd_dev->user_callback_sof(usbd_dev);
 		}
 		REBASE(OTG_GINTSTS) = OTG_GINTSTS_SOF;
 	}
